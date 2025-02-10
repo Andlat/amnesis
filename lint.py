@@ -3,6 +3,7 @@ Git Hook that trigger on pre-commit. It run Pylint on all changed files within t
 repository and execute the tests if the user is about to commit on the branch dev or
 main.
 """
+
 import argparse
 import logging
 import sys
@@ -38,7 +39,7 @@ def main():
         "Running Pylint within %s, will pass if the score is over: %s", paths, threshold
     )
 
-    result = lint.Run(["--rcfile=pylintrc", *paths], do_exit=False)
+    result = lint.Run(["--rcfile=pylintrc", *paths], exit=False)
     rating = result.linter.stats.global_note
 
     if rating < threshold and result.linter.stats.statement > 0:

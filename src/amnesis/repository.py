@@ -21,7 +21,7 @@ class Repository:
         self.root = path
         repository_dir.mkdir(parents=True, exist_ok=True)
 
-    def in_project(self):
+    def in_repository(self):
         path = pathlib.Path.cwd()
         return self._get_root_path(path) is not None
 
@@ -30,7 +30,7 @@ class Repository:
         return self._get_root_path(path)
 
     def get_amnesis_dir(self):
-        if self.in_project():
+        if self.in_repository():
             return self.get_root() / self.dir_name
 
         if self.root:
@@ -40,7 +40,6 @@ class Repository:
 
     def get_models(self):
         amnesis_dir = self.get_amnesis_dir()
-        # models = list(amnesis_dir.glob("*"))
 
         models = []
         for model in amnesis_dir.iterdir():

@@ -38,7 +38,9 @@ class TempDir:
             shutil.rmtree(self._path, onerror=self._remove_readonly)
 
         if self._remove and self._path.exists():
-            raise FileExistsError(f'The tempory file: "{self._path}" was not properly remove')
+            raise FileExistsError(
+                f'The tempory file: "{self._path}" was not properly remove'
+            )
 
         if not pathlib.Path.cwd().exists():
             raise FileExistsError()

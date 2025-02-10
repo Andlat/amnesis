@@ -1,4 +1,5 @@
 import pathlib
+
 import setuptools
 
 
@@ -22,10 +23,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     keywords="experiments tracking",
     package_dir={"": "src"},
-    packages=setuptools.find_packages(
-        where="src",
-        exclude=["tests", "tests.*"]
-    ),
+    packages=setuptools.find_packages(where="src", exclude=["tests", "tests.*"]),
     python_requires=">=3.8",
     install_requires=[
         *read_requirements(pathlib.Path("requirements/requirements.txt")),
@@ -38,5 +36,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    entry_points={"console_scripts": ["amnesis=amnesis.cli:main"]},
+    entry_points={"console_scripts": ["amnesis=amnesis.command.cli:main"]},
 )
