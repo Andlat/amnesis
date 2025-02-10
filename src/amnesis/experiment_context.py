@@ -1,4 +1,6 @@
 import datetime
+import pathlib
+import shutil
 import time
 import uuid
 from typing import Dict
@@ -82,11 +84,20 @@ class ExperimentContext:
         self.did_log = True
         self.metrics[name] = metric
 
-    def log_artifact(self, artifact):
+    def log_artifact(self, artifact: pathlib.Path):
         self.did_log = True
 
-        artifact_path = self.experiment_dir / "artifacts"
-        raise NotImplementedError
+        name = artifact.name
+        is_dir = artifact.is_dir()
+
+        artifact_dir = self.experiment_dir / "artifacts"
+
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+
+        if is_dir:
+            shutil.copytree(artifact, artifact_dir / name)
+        else:
+            shutil.copy2(artifact, artifact_dir / name)
 
     def _generate_name(self):
         attempts = 0
@@ -113,7 +124,7 @@ class ExperimentContext:
             return False
 
         for experiment in experiments:
-            if experiment.experiment_name == name:
+            if experiment.name == name:
                 return True
 
         return False

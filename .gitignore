@@ -134,4 +134,5 @@ dmypy.json
 # Log file created by pre-commit hook for black
 .black.log
 
-.amnesis
+.amnesis/
+output/
