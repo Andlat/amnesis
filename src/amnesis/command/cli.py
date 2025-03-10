@@ -27,8 +27,12 @@ from .list_models import list_models
     options=[
         clipy.Option(name="model", type=str, default=None, required=False),
         clipy.Option(
-            name="compare", action="store_true", default=False, required=False
+            name="hyperparameters", action="store_true", default=False, required=False
         ),
+        clipy.Option(
+            name="metrics", action="store_true", default=False, required=False
+        ),
+        clipy.Option(name="sort", type=str, default=None, required=False),
     ],
 )
 def main(command: clipy.CommandDefinition):
@@ -52,7 +56,11 @@ def main(command: clipy.CommandDefinition):
         list_models(repo=repository)
     elif command_name == "experiments":
         list_experiments(
-            repo=repository, model_name=options["model"], compare=options["compare"]
+            repo=repository,
+            model_name=options["model"],
+            hyperparameters=options["hyperparameters"],
+            metrics=options["metrics"],
+            sort=options["sort"],
         )
     else:
         print(f"Unknown command: {command_name}")

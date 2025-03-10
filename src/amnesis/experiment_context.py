@@ -50,10 +50,12 @@ class ExperimentContext:
         self.did_log = False
 
     def __enter__(self):
-        self.time = time.perf_counter()
-        self.date = datetime.datetime.now()
         self.experiment_dir = self.model_dir / self.experiment.uuid
         self.experiment_dir.mkdir(parents=True, exist_ok=True)
+
+        self.time = time.perf_counter()
+        self.date = datetime.datetime.now()
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):

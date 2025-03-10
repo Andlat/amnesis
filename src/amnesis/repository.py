@@ -66,8 +66,9 @@ class Repository:
         model_dir = self.get_amnesis_dir() / model_name
 
         for experiment in model_dir.iterdir():
-            if experiment.is_dir():
-                experiments.append(Experiment.load(experiment / "metadata.json"))
+            experiment_metadata = experiment / "metadata.json"
+            if experiment.is_dir() and experiment_metadata.exists():
+                experiments.append(Experiment.load(experiment_metadata))
 
         return experiments
 
