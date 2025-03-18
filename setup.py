@@ -14,7 +14,7 @@ def read_requirements(file_name: pathlib.Path):
 
 setuptools.setup(
     name="amnesis",
-    version="0.0.2",
+    version="0.0.3",
     author="Gabriel Lauzier",
     author_email="gabriel.lauzier@usherbrooke.ca",
     url="",

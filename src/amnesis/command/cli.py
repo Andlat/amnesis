@@ -33,6 +33,15 @@ from .list_models import list_models
     ],
 )
 @clipy.Command(
+    name="list",
+    usage="amnesis list [--short]",
+    description="List all experiments",
+    options=[
+        clipy.Option(name="short", action='store_true', required=False),
+        clipy.Option(name="sort", type=str, default=None, required=False),
+        ]
+)
+@clipy.Command(
     name="experiments",
     usage="amnesis experiments",
     description="List all experiments",
@@ -97,6 +106,15 @@ def main(command: clipy.CommandDefinition):
             model_name=options["model"],
             hyperparameters=options["hyperparameters"],
             metrics=options["metrics"],
+            sort=options["sort"],
+        )
+    elif command_name == "list":
+        short_desc = options["short"]
+        list_experiments(
+            repo=repository,
+            model_name=None,
+            hyperparameters=not short_desc,
+            metrics=not short_desc,
             sort=options["sort"],
         )
     else:
