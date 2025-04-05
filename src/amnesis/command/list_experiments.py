@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from amnesis.experiment import Experiment
 from amnesis.repository import Repository
@@ -57,12 +57,13 @@ class DataFrame:
 
         return "\n".join(lines)
 
-    def sort(self, column: str):
+    def sort(self, columns: str):
         """
-        Sort the data by the values in the column.
+        Sort the data by the values in the column or columns.
+        Precedence follows the sequence of columns passed by the user
         """
-        column_index = self.columns.index(column)
-        self.data = sorted(self.data, key=lambda x: x[column_index])
+        column_indices = [self.columns.index(c) for c in columns]
+        self.data = sorted(self.data, key=lambda x: tuple(x[i] for i in column_indices))
 
 
 def get_model_names(repo: Repository):
@@ -121,12 +122,19 @@ def get_metrics_frame(experiments: List[Experiment]):
     return DataFrame(columns, data)
 
 
+def match_columns(columns: List[str], frame: DataFrame):
+    for c in columns:
+        if c not in frame.columns:
+            return False, c
+
+    return True, None
+
 def list_experiments(
     repo: Repository,
     model_name: str = None,
     hyperparameters: bool = False,
     metrics: bool = False,
-    sort: str = None,
+    sort: Optional[List[str]] = None,
 ):
     models_name = get_model_names(repo)
 
@@ -155,9 +163,9 @@ def list_experiments(
         frame += metrics_frame
 
     if sort:
-        if sort not in frame.columns:
+        if not (matches := match_columns(sort, frame))[0]:
             print(
-                f"Column {sort} not found in the dataframe. Available columns are: {', '.join(frame.columns)}"
+                f"Column {matches[1]} not found in the dataframe. Available columns are: {', '.join(frame.columns)}"
             )
             return
         frame.sort(sort)
