@@ -1,3 +1,5 @@
+import abc
+from typing import Callable, Optional
 import clipy
 
 from amnesis.repository import Repository
@@ -38,7 +40,7 @@ from .list_models import list_models
     description="List all experiments",
     options=[
         clipy.Option(name="short", action='store_true', required=False),
-        clipy.Option(name="sort", type=str, default=None, required=False),
+        clipy.Option(name="sort", type=str, nargs="+", default=None, required=False),
         ]
 )
 @clipy.Command(
@@ -53,7 +55,7 @@ from .list_models import list_models
         clipy.Option(
             name="metrics", action="store_true", default=False, required=False
         ),
-        clipy.Option(name="sort", type=str, default=None, required=False),
+        clipy.Option(name="sort", type=str, nargs="+", default=None, required=False),
     ],
     subcommands=[
         clipy.Command(
@@ -63,6 +65,15 @@ from .list_models import list_models
             options=[clipy.Option(name="experiment uuid", positional=True, type=str)],
         ),
     ],
+)
+@clipy.Command(
+    name="delete",
+    usage="amnesis delete [model | experiment] [model_name | experiment_uuid]",
+    description="Delete a model or an experiment",
+    options=[
+                clipy.Option(name="type", choices=["model", "experiment"], positional=True, type=str),
+                clipy.Option(name="id", positional=True, type=str)
+            ]
 )
 def main(command: clipy.CommandDefinition):
     command_name = command.name
@@ -82,24 +93,14 @@ def main(command: clipy.CommandDefinition):
     elif command_name == "info":
         raise NotImplementedError
     elif command_name == "models":
-        subcommand_name = command.options['models']
-        if subcommand_name == 'delete':
-            try:
-                repository.remove_model(model_name=options["model_name"])
-                print(f'\033[92m{options["model_name"]} successfully deleted\033[0m\n')
-            except Exception as e:
-                print(f'\033[93m{e}\033[0m\n')
+        if (subcommand := test_subcommand(command, "delete")):
+            deleteModel(repository, subcommand.options["model_name"])
 
         list_models(repo=repository)
 
     elif command_name == "experiments":
-        subcommand_name = command.options['experiments']
-        if subcommand_name  == 'delete':
-            try:
-                repository.remove_experiment(experiment_uuid=options["experiment uuid"])
-                print(f'\033[92m{options["experiment uuid"]} successfully deleted\033[0m\n')
-            except Exception as e:
-                print(f'\033[93m{e}\033[0m\n')
+        if (subcommand := test_subcommand(command, "delete")):
+            deleteExperiment(repository, subcommand.options["experiment uuid"])
 
         list_experiments(
             repo=repository,
@@ -117,5 +118,46 @@ def main(command: clipy.CommandDefinition):
             metrics=not short_desc,
             sort=options["sort"],
         )
+    elif command_name == "delete":
+        if options["type"] == "model":
+            deleteModel(repository, options["id"])
+        else: # elif options["type"] == "experiment":
+            deleteExperiment(repository, options["id"])
+
     else:
         print(f"Unknown command: {command_name}")
+
+
+def get_subcommand(command: clipy.CommandDefinition) -> Optional[clipy.CommandDefinition]:
+    return command.subcommands[0] if command.subcommands else None
+
+def test_subcommand(command: clipy.CommandDefinition, subcommand_name: str) -> Optional[clipy.CommandDefinition]:
+    subcommand = get_subcommand(command)
+    if subcommand and subcommand.name == subcommand_name:
+        return subcommand
+    return None
+
+
+class delete(abc.ABC):
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance(*args, **kwargs)  # Automatically trigger __call__()
+        return instance
+
+    def _exec(self, del_fn: Callable[[], str], id: str):
+        try:
+            del_fn(id)
+            print(f'\033[92m{id} successfully deleted\033[0m\n')
+        except Exception as e:
+            print(f'\033[93m{e}\033[0m\n')
+
+    def __call__(self, repository: Repository, id: str, *args, **kwds):
+        pass
+
+class deleteModel(delete):
+    def __call__(self, repository: Repository, id: str, *args, **kwds):
+        super()._exec(repository.remove_model, id)
+
+class deleteExperiment(delete):
+    def __call__(self, repository: Repository, id: str, *args, **kwds):
+        super()._exec(repository.remove_experiment, id)
