@@ -1,8 +1,8 @@
 import functools
 import sys
 import traceback
-from typing import List, Optional, TypedDict
 import warnings
+from typing import List, Optional, TypedDict
 
 from .experiment_context import ExperimentContext
 
@@ -109,7 +109,11 @@ class remember(ExperimentContext):
                     try:
                         value = self._exp_locals[param]
                     except:
-                        warnings.warn(color_warning(f"{log_type[:-1].capitalize()} {param} not found in the experiment. Skipping."))
+                        warnings.warn(
+                            color_warning(
+                                f"{log_type[:-1].capitalize()} {param} not found in the experiment. Skipping."
+                            )
+                        )
                         continue
 
                     match log_type:

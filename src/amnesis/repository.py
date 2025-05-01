@@ -54,9 +54,7 @@ class Repository:
 
     def remove_model(self, model_name: str):
         try:
-            shutil.rmtree(
-                self.get_amnesis_dir() / model_name, ignore_errors=False
-            )
+            shutil.rmtree(self.get_amnesis_dir() / model_name, ignore_errors=False)
         except FileNotFoundError:
             raise FileNotFoundError(f"Model {model_name} not found")
         # OSError exceptions can still be thrown. e.g., permission dernied, resource busy, etc.
@@ -100,7 +98,8 @@ class Repository:
     def remove_experiment_by_model(self, model_name: str, experiment_uuid: str):
         try:
             shutil.rmtree(
-                self.get_amnesis_dir() / model_name / experiment_uuid, ignore_errors=False
+                self.get_amnesis_dir() / model_name / experiment_uuid,
+                ignore_errors=False,
             )
         except FileNotFoundError:
             raise FileNotFoundError(f"Experiment {experiment_uuid} not found")

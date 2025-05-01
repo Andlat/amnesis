@@ -1,5 +1,6 @@
 import abc
 from typing import Callable, Optional
+
 import clipy
 
 from amnesis.repository import Repository
@@ -39,9 +40,9 @@ from .list_models import list_models
     usage="amnesis list [--short]",
     description="List all experiments",
     options=[
-        clipy.Option(name="short", action='store_true', required=False),
+        clipy.Option(name="short", action="store_true", required=False),
         clipy.Option(name="sort", type=str, nargs="+", default=None, required=False),
-        ]
+    ],
 )
 @clipy.Command(
     name="experiments",
@@ -71,9 +72,11 @@ from .list_models import list_models
     usage="amnesis delete [model | experiment] [model_name | experiment_uuid]",
     description="Delete a model or an experiment",
     options=[
-                clipy.Option(name="type", choices=["model", "experiment"], positional=True, type=str),
-                clipy.Option(name="id", positional=True, type=str)
-            ]
+        clipy.Option(
+            name="type", choices=["model", "experiment"], positional=True, type=str
+        ),
+        clipy.Option(name="id", positional=True, type=str),
+    ],
 )
 def main(command: clipy.CommandDefinition):
     command_name = command.name
@@ -93,13 +96,13 @@ def main(command: clipy.CommandDefinition):
     elif command_name == "info":
         raise NotImplementedError
     elif command_name == "models":
-        if (subcommand := test_subcommand(command, "delete")):
+        if subcommand := test_subcommand(command, "delete"):
             deleteModel(repository, subcommand.options["model_name"])
 
         list_models(repo=repository)
 
     elif command_name == "experiments":
-        if (subcommand := test_subcommand(command, "delete")):
+        if subcommand := test_subcommand(command, "delete"):
             deleteExperiment(repository, subcommand.options["experiment uuid"])
 
         list_experiments(
@@ -121,17 +124,22 @@ def main(command: clipy.CommandDefinition):
     elif command_name == "delete":
         if options["type"] == "model":
             deleteModel(repository, options["id"])
-        else: # elif options["type"] == "experiment":
+        else:  # elif options["type"] == "experiment":
             deleteExperiment(repository, options["id"])
 
     else:
         print(f"Unknown command: {command_name}")
 
 
-def get_subcommand(command: clipy.CommandDefinition) -> Optional[clipy.CommandDefinition]:
+def get_subcommand(
+    command: clipy.CommandDefinition,
+) -> Optional[clipy.CommandDefinition]:
     return command.subcommands[0] if command.subcommands else None
 
-def test_subcommand(command: clipy.CommandDefinition, subcommand_name: str) -> Optional[clipy.CommandDefinition]:
+
+def test_subcommand(
+    command: clipy.CommandDefinition, subcommand_name: str
+) -> Optional[clipy.CommandDefinition]:
     subcommand = get_subcommand(command)
     if subcommand and subcommand.name == subcommand_name:
         return subcommand
@@ -147,16 +155,18 @@ class delete(abc.ABC):
     def _exec(self, del_fn: Callable[[], str], id: str):
         try:
             del_fn(id)
-            print(f'\033[92m{id} successfully deleted\033[0m\n')
+            print(f"\033[92m{id} successfully deleted\033[0m\n")
         except Exception as e:
-            print(f'\033[93m{e}\033[0m\n')
+            print(f"\033[93m{e}\033[0m\n")
 
     def __call__(self, repository: Repository, id: str, *args, **kwds):
         pass
 
+
 class deleteModel(delete):
     def __call__(self, repository: Repository, id: str, *args, **kwds):
         super()._exec(repository.remove_model, id)
+
 
 class deleteExperiment(delete):
     def __call__(self, repository: Repository, id: str, *args, **kwds):
