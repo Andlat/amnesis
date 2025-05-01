@@ -1,8 +1,8 @@
-import abc
-from typing import Callable, Optional
+from typing import Optional
 
 import clipy
 
+from amnesis.command.delete import deleteExperiment, deleteModel
 from amnesis.repository import Repository
 
 from .initialization import init
@@ -144,30 +144,3 @@ def test_subcommand(
     if subcommand and subcommand.name == subcommand_name:
         return subcommand
     return None
-
-
-class delete(abc.ABC):
-    def __new__(cls, *args, **kwargs):
-        instance = super().__new__(cls)
-        instance(*args, **kwargs)  # Automatically trigger __call__()
-        return instance
-
-    def _exec(self, del_fn: Callable[[], str], id: str):
-        try:
-            del_fn(id)
-            print(f"\033[92m{id} successfully deleted\033[0m\n")
-        except Exception as e:
-            print(f"\033[93m{e}\033[0m\n")
-
-    def __call__(self, repository: Repository, id: str, *args, **kwds):
-        pass
-
-
-class deleteModel(delete):
-    def __call__(self, repository: Repository, id: str, *args, **kwds):
-        super()._exec(repository.remove_model, id)
-
-
-class deleteExperiment(delete):
-    def __call__(self, repository: Repository, id: str, *args, **kwds):
-        super()._exec(repository.remove_experiment, id)
