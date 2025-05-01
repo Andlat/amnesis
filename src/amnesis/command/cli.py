@@ -1,5 +1,8 @@
+from typing import Optional
+
 import clipy
 
+from amnesis.command.delete import deleteExperiment, deleteModel
 from amnesis.repository import Repository
 
 from .initialization import init
@@ -19,7 +22,28 @@ from .list_models import list_models
     usage="amnesis info",
     description="Show information about the current project",
 )
-@clipy.Command(name="models", usage="amnesis models", description="List all models")
+@clipy.Command(
+    name="models",
+    usage="amnesis models",
+    description="List all models",
+    subcommands=[
+        clipy.Command(
+            name="delete",
+            usage="amnesis models delete [model_name]",
+            description="Delete a model",
+            options=[clipy.Option(name="model_name", positional=True, type=str)],
+        ),
+    ],
+)
+@clipy.Command(
+    name="list",
+    usage="amnesis list [--short]",
+    description="List all experiments",
+    options=[
+        clipy.Option(name="short", action="store_true", required=False),
+        clipy.Option(name="sort", type=str, nargs="+", default=None, required=False),
+    ],
+)
 @clipy.Command(
     name="experiments",
     usage="amnesis experiments",
@@ -32,7 +56,26 @@ from .list_models import list_models
         clipy.Option(
             name="metrics", action="store_true", default=False, required=False
         ),
-        clipy.Option(name="sort", type=str, default=None, required=False),
+        clipy.Option(name="sort", type=str, nargs="+", default=None, required=False),
+    ],
+    subcommands=[
+        clipy.Command(
+            name="delete",
+            usage="amnesis experiments delete [uuid]",
+            description="Delete an experiment by uuid",
+            options=[clipy.Option(name="experiment uuid", positional=True, type=str)],
+        ),
+    ],
+)
+@clipy.Command(
+    name="delete",
+    usage="amnesis delete [model | experiment] [model_name | experiment_uuid]",
+    description="Delete a model or an experiment",
+    options=[
+        clipy.Option(
+            name="type", choices=["model", "experiment"], positional=True, type=str
+        ),
+        clipy.Option(name="id", positional=True, type=str),
     ],
 )
 def main(command: clipy.CommandDefinition):
@@ -53,8 +96,15 @@ def main(command: clipy.CommandDefinition):
     elif command_name == "info":
         raise NotImplementedError
     elif command_name == "models":
+        if subcommand := test_subcommand(command, "delete"):
+            deleteModel(repository, subcommand.options["model_name"])
+
         list_models(repo=repository)
+
     elif command_name == "experiments":
+        if subcommand := test_subcommand(command, "delete"):
+            deleteExperiment(repository, subcommand.options["experiment uuid"])
+
         list_experiments(
             repo=repository,
             model_name=options["model"],
@@ -62,5 +112,35 @@ def main(command: clipy.CommandDefinition):
             metrics=options["metrics"],
             sort=options["sort"],
         )
+    elif command_name == "list":
+        short_desc = options["short"]
+        list_experiments(
+            repo=repository,
+            model_name=None,
+            hyperparameters=not short_desc,
+            metrics=not short_desc,
+            sort=options["sort"],
+        )
+    elif command_name == "delete":
+        if options["type"] == "model":
+            deleteModel(repository, options["id"])
+        else:  # elif options["type"] == "experiment":
+            deleteExperiment(repository, options["id"])
+
     else:
         print(f"Unknown command: {command_name}")
+
+
+def get_subcommand(
+    command: clipy.CommandDefinition,
+) -> Optional[clipy.CommandDefinition]:
+    return command.subcommands[0] if command.subcommands else None
+
+
+def test_subcommand(
+    command: clipy.CommandDefinition, subcommand_name: str
+) -> Optional[clipy.CommandDefinition]:
+    subcommand = get_subcommand(command)
+    if subcommand and subcommand.name == subcommand_name:
+        return subcommand
+    return None
